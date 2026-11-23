@@ -11,7 +11,7 @@ runs-on: macos-latest
 
 steps:
 - name: Checkout source code
-- uses: actions/checkout@v4
+-  uses: actions/checkout@v4
 
 - name: Compile using Makefile
 run: make
