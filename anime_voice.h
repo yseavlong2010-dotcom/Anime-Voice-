@@ -17,9 +17,9 @@ AnimeVoiceState* anime_voice_create(int sample_rate);
 uint32_t anime_voice_process(AnimeVoiceState* state,
 const float *input,
 uint32_t input_frames,
-float output,
+float *output,
 uint32_t output_capacity,
-const AnimeVoiceParams params);
+const AnimeVoiceParams *params);
 void anime_voice_destroy(AnimeVoiceState* state);
 const char *anime_voice_version(void);
 #ifdef __cplusplus
