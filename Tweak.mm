@@ -21,7 +21,9 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
                 
                 if (frames > 4096) continue;
                 
-                float tempOut[frames];
+                // Fix C++ VLA Warning: Cấp phát mảng tĩnh với kích thước tối đa đã biết
+                float tempOut[4096];
+                
                 uint32_t produced = anime_voice_process(g_state, samples, frames, tempOut, frames, &g_params);
                 
                 memcpy(samples, tempOut, produced * sizeof(float));
@@ -172,6 +174,7 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
                                                       object:nil 
                                                        queue:[NSOperationQueue mainQueue] 
                                                   usingBlock:^(NSNotification * _Nonnull note) {
+        (void)note; // Fix Warning unused parameter
         static AnimeOverlayWindow *overlay = nil;
         if (overlay) return; 
         
