@@ -13,7 +13,7 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Compile to iOS arm64 dylib
+      - name: Compile Full Tweak
         run: |
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           clang -O3 -Wall -Wextra -fPIC -dynamiclib -arch arm64 -isysroot "$SDK_PATH" -miphoneos-version-min=14.0 -framework Foundation -framework UIKit -framework AudioToolbox anime_voice.c fishhook.c Tweak.mm -o AnimeVoice_Pro.dylib
