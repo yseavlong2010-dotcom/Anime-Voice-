@@ -19,7 +19,7 @@ AudioBuffer *buffer = &ioData->mBuffers[i];
 if (buffer->mData && buffer->mDataByteSize > 0) {
 float *samples = (float *)buffer->mData;
 UInt32 frames = buffer->mDataByteSize / sizeof(float);
-float tempOut = (float)malloc(buffer->mDataByteSize);
+float *tempOut = (float *)malloc(buffer->mDataByteSize);
 uint32_t produced = anime_voice_process(g_state, samples, frames, tempOut, frames, &g_params);
 // Copy trả lại hệ thống, điền số 0 (im lặng) vào phần còn thừa
 memcpy(samples, tempOut, produced * sizeof(float));
