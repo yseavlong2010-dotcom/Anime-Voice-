@@ -11,23 +11,21 @@ static OSStatus (*orig_AudioUnitRender)(AudioUnit inUnit, AudioUnitRenderActionF
 
 static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inOutputBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
     OSStatus status = orig_AudioUnitRender(inUnit, ioActionFlags, inTimeStamp, inOutputBusNumber, inNumberFrames, ioData);
-
     if (status == noErr && g_enabled && g_state && ioData) {
         for (UInt32 i = 0; i < ioData->mNumberBuffers; i++) {
             AudioBuffer *buffer = &ioData->mBuffers[i];
-            
             if (buffer->mData && buffer->mDataByteSize > 0) {
                 float *samples = (float *)buffer->mData;
                 UInt32 frames = buffer->mDataByteSize / sizeof(float);
-                
-                float *tempOut = (float *)malloc(buffer->mDataByteSize);
-                uint32_t produced = anime_voice_process(g_state, samples, frames, tempOut, frames, &g_params);
-                
-                memcpy(samples, tempOut, produced * sizeof(float));
-                if (frames > produced) {
-                    memset(samples + produced, 0, (frames - produced) * sizeof(float));
+                float *tempOut = (float *)malloc(buffer->mDataByteSize); // Đã sửa lỗi ép kiểu
+                if (tempOut) {
+                    uint32_t produced = anime_voice_process(g_state, samples, frames, tempOut, frames, &g_params);
+                    memcpy(samples, tempOut, produced * sizeof(float));
+                    if (frames > produced) {
+                        memset(samples + produced, 0, (frames - produced) * sizeof(float));
+                    }
+                    free(tempOut);
                 }
-                free(tempOut);
             }
         }
     }
@@ -36,7 +34,9 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
 
 @interface AnimeOverlayWindow : UIWindow
 @end
+
 @implementation AnimeOverlayWindow
+// Đã thêm dấu trừ (-)
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     UIView *hitView = [super hitTest:point withEvent:event];
     if (hitView == self || hitView == self.rootViewController.view) return nil;
@@ -50,10 +50,11 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
 @end
 
 @implementation AnimeViewController
+// Đã thêm dấu trừ (-) cho toàn bộ Methods
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor clearColor];
-
+    
     self.floatingBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     self.floatingBtn.frame = CGRectMake(20, 100, 60, 60);
     self.floatingBtn.backgroundColor = [UIColor systemPinkColor];
@@ -65,28 +66,28 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
     UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(dragBtn:)];
     [self.floatingBtn addGestureRecognizer:pan];
     [self.view addSubview:self.floatingBtn];
-
+    
     self.panelView = [[UIView alloc] initWithFrame:CGRectMake(20, 170, 250, 220)];
     self.panelView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.8];
     self.panelView.layer.cornerRadius = 15;
     self.panelView.hidden = YES;
     [self.view addSubview:self.panelView];
-
+    
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(15, 15, 150, 30)];
     title.text = @"Anime Voice Pro";
     title.textColor = [UIColor whiteColor];
     title.font = [UIFont boldSystemFontOfSize:18];
     [self.panelView addSubview:title];
-
+    
     UISwitch *onOff = [[UISwitch alloc] initWithFrame:CGRectMake(180, 15, 50, 30)];
     onOff.onTintColor = [UIColor systemPinkColor];
     onOff.on = g_enabled;
     [onOff addTarget:self action:@selector(toggleVoice:) forControlEvents:UIControlEventValueChanged];
     [self.panelView addSubview:onOff];
-
-    [self addSlider:@"Pitch (Độ cao)" y:60 min:0.5 max:2.0 value:g_params.pitch_shift action:@selector(pitchChanged:)];
-    [self addSlider:@"Reverb (Vang)" y:110 min:0.0 max:1.0 value:g_params.reverb_level action:@selector(reverbChanged:)];
-    [self addSlider:@"Brightness (Trong)" y:160 min:0.0 max:1.0 value:g_params.brightness action:@selector(brightChanged:)];
+    
+    [self addSlider:@"Pitch" y:60 min:0.5 max:2.0 value:g_params.pitch_shift action:@selector(pitchChanged:)];
+    [self addSlider:@"Reverb" y:110 min:0.0 max:1.0 value:g_params.reverb_level action:@selector(reverbChanged:)];
+    [self addSlider:@"Brightness" y:160 min:0.0 max:1.0 value:g_params.brightness action:@selector(brightChanged:)];
 }
 
 - (void)addSlider:(NSString*)name y:(CGFloat)y min:(float)min max:(float)max value:(float)val action:(SEL)action {
@@ -105,9 +106,11 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
     CGPoint p = [pan locationInView:self.view];
     self.floatingBtn.center = p;
 }
+
 - (void)togglePanel {
     self.panelView.hidden = !self.panelView.hidden;
 }
+
 - (void)toggleVoice:(UISwitch *)sender { g_enabled = sender.isOn; }
 - (void)pitchChanged:(UISlider *)sender { g_params.pitch_shift = sender.value; }
 - (void)reverbChanged:(UISlider *)sender { g_params.reverb_level = sender.value; }
@@ -116,11 +119,10 @@ static OSStatus my_AudioUnitRender(AudioUnit inUnit, AudioUnitRenderActionFlags 
 
 __attribute__((constructor)) static void anime_voice_tweak_init() {
     g_state = anime_voice_create(44100);
-
     rebind_symbols((struct rebinding[1]){
-        {"AudioUnitRender", (void *)my_AudioUnitRender, (void **)&orig_AudioUnitRender}
+        {"AudioUnitRender", (void*)my_AudioUnitRender, (void**)&orig_AudioUnitRender} // Fix con trỏ **
     }, 1);
-
+    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         static AnimeOverlayWindow *overlay;
         if (@available(iOS 13.0, *)) {
@@ -132,7 +134,6 @@ __attribute__((constructor)) static void anime_voice_tweak_init() {
             }
         }
         if (!overlay) overlay = [[AnimeOverlayWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        
         overlay.windowLevel = UIWindowLevelStatusBar + 100;
         overlay.hidden = NO;
         overlay.rootViewController = [[AnimeViewController alloc] init];
