@@ -1,5 +1,6 @@
 #ifndef fishhook_h
 #define fishhook_h
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -12,9 +13,9 @@ extern "C" {
 #endif
 
 struct rebinding {
-  const char *name;
-  void *replacement;
-  void **replaced; // Đã sửa lỗi thiếu con trỏ **
+    const char *name;
+    void *replacement;
+    void **replaced;
 };
 
 FISHHOOK_EXPORT
