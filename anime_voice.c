@@ -38,9 +38,9 @@ return x * (27.0f + x * x) / (27.0f + 9.0f * x * x);
 EXPORT uint32_t anime_voice_process(AnimeVoiceState* state,
 const float *input,
 uint32_t input_frames,
-float output,
+float *output,
 uint32_t output_capacity,
-const AnimeVoiceParams params) {
+const AnimeVoiceParams *params) {
 if (!state || !input || !output || input_frames < 2 || output_capacity == 0 || !params) return 0;
 float pitch = params->pitch_shift;
 if (pitch < 0.5f) pitch = 0.5f;
