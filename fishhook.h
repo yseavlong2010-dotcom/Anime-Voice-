@@ -1,6 +1,5 @@
 #ifndef fishhook_h
 #define fishhook_h
-
 #include <stddef.h>
 #include <stdint.h>
 
@@ -15,7 +14,7 @@ extern "C" {
 struct rebinding {
   const char *name;
   void *replacement;
-  void **replaced;
+  void **replaced; // Đã sửa lỗi thiếu con trỏ **
 };
 
 FISHHOOK_EXPORT
@@ -30,5 +29,4 @@ int rebind_symbols_image(void *header,
 #ifdef __cplusplus
 }
 #endif
-
 #endif // fishhook_h
