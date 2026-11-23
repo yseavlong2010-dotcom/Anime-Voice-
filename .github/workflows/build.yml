@@ -17,7 +17,7 @@ steps:
 run: make
 
 - name: Upload Pro Dylib Artifact
-uses: actions/upload-artifact@v4
-with:
-name: AnimeVoicePro-dylib
-path: AnimeVoice_Pro.dylib
+  uses: actions/upload-artifact@v4
+  with:
+    name: AnimeVoicePro-dylib
+    path: AnimeVoice_Pro.dylib
